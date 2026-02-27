@@ -6,9 +6,16 @@ import os
 
 app = Flask(__name__)
 
-# Load model
-model = tf.keras.models.load_model("solar_model.h5", compile=False)
+# -------- Lazy Model Loading --------
+model = None
 
+def load_model_once():
+    global model
+    if model is None:
+        model = tf.keras.models.load_model("solar_model.h5", compile=False)
+    return model
+
+# Class labels
 classes = ["Clean", "Dusty", "Bird-drop", "Crack", "Snow"]
 
 @app.route("/")
@@ -23,23 +30,23 @@ def predict():
 
         file = request.files["image"]
 
-        # Open image properly
+        # Open and preprocess image
         image = Image.open(file.stream).convert("RGB")
+        image = image.resize((244, 244))  # MUST match training size
 
-        # Resize to correct training size
-        image = image.resize((244, 244))
-
-        # Convert to numpy
         img = np.array(image) / 255.0
         img = np.expand_dims(img, axis=0)
 
-        # Predict
+        # Load model only when needed
+        model = load_model_once()
+
         prediction = model.predict(img)
-        class_index = np.argmax(prediction)
+        class_index = int(np.argmax(prediction))
+        confidence = float(np.max(prediction))
 
         return jsonify({
             "prediction": classes[class_index],
-            "confidence": float(np.max(prediction))
+            "confidence": confidence
         })
 
     except Exception as e:
