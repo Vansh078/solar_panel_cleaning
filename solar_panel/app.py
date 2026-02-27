@@ -16,7 +16,7 @@ def load_model_once():
     return model
 
 # Class labels
-classes = ["Clean", "Dusty", "Bird-drop", "Crack", "Snow"]
+classes = ["Clean", "Dusty", "Bird-drop", "Crack", "Snow", "Electrical-damage"]
 
 @app.route("/")
 def home():
@@ -40,9 +40,14 @@ def predict():
         # Load model only when needed
         model = load_model_once()
 
+        # 🔥 Get raw predictions (logits)
         prediction = model.predict(img)
-        class_index = int(np.argmax(prediction))
-        confidence = float(np.max(prediction))
+
+        # 🔥 Convert logits to probabilities
+        probabilities = tf.nn.softmax(prediction[0]).numpy()
+
+        class_index = int(np.argmax(probabilities))
+        confidence = float(np.max(probabilities))
 
         return jsonify({
             "prediction": classes[class_index],
