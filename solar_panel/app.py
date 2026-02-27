@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 
-model = tf.keras.models.load_model("solar_model.h5", compile=False)
+model = tf.keras.models.load_model("solar_model_tf")
 classes = ["Clean", "Dusty", "Bird-drop", "Crack", "Snow"]
 
 @app.route("/")
