@@ -16,7 +16,7 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     file = request.files["image"]
-    img = Image.open(file).resize((224, 224))
+    image = image.resize((244, 244))    
     img = np.array(img) / 255.0
     img = np.expand_dims(img, axis=0)
 
