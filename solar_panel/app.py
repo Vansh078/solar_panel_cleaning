@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import os
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 app = Flask(__name__)
 
@@ -15,12 +16,19 @@ def load_model_once():
         model = tf.keras.models.load_model("solar_models.h5", compile=False)
     return model
 
-# Class labels
-classes = ["Clean", "Dusty", "Bird-drop", "Crack", "Snow", "Electrical-damage"]
+# ⚠ MUST MATCH TRAINING ORDER EXACTLY
+classes = [
+    "Bird-drop",
+    "Clean",
+    "Dusty",
+    "Electrical-damage",
+    "Physical-Damage",
+    "Snow-Covered"
+]
 
 @app.route("/")
 def home():
-    return "Solar Panel Model Running"
+    return "Solar Panel Fault Detection Model Running"
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -30,28 +38,29 @@ def predict():
 
         file = request.files["image"]
 
-        # Open and preprocess image
+        # Open and resize image (same size as training)
         image = Image.open(file.stream).convert("RGB")
-        image = image.resize((244, 244))  # MUST match training size
+        image = image.resize((244, 244))
 
-        img = np.array(image) / 255.0
+        # Convert to numpy
+        img = np.array(image)
         img = np.expand_dims(img, axis=0)
 
-        # Load model only when needed
+        # 🔥 IMPORTANT: Use VGG16 preprocessing (NOT /255)
+        img = preprocess_input(img)
+
+        # Load model
         model = load_model_once()
 
-        # 🔥 Get raw predictions (logits)
+        # Predict (softmax already inside model)
         prediction = model.predict(img)
 
-        # 🔥 Convert logits to probabilities
-        probabilities = tf.nn.softmax(prediction[0]).numpy()
-
-        class_index = int(np.argmax(probabilities))
-        confidence = float(np.max(probabilities))
+        class_index = int(np.argmax(prediction))
+        confidence = float(np.max(prediction))
 
         return jsonify({
             "prediction": classes[class_index],
-            "confidence": confidence
+            "confidence": round(confidence, 4)
         })
 
     except Exception as e:
