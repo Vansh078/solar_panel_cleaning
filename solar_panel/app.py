@@ -12,7 +12,7 @@ model = None
 def load_model_once():
     global model
     if model is None:
-        model = tf.keras.models.load_model("solar_model.h5", compile=False)
+        model = tf.keras.models.load_model("solar_models.h5", compile=False)
     return model
 
 # Class labels
