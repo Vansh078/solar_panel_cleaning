@@ -1,4 +1,5 @@
 ☀️ Solar Panel Fault Detection & Cleaning Classification
+
 📌 Project Overview
 
 This project is a deep learning-based web application that detects the condition of solar panels using image input.
