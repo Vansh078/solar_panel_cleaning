@@ -7,7 +7,6 @@ from tensorflow.keras.applications.vgg16 import preprocess_input
 
 app = Flask(__name__)
 
-# -------- Lazy Model Loading --------
 model = None
 
 def load_model_once():
